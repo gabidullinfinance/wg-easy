@@ -12,9 +12,7 @@ services:
     image: ghcr.io/wg-easy/wg-easy:15
     container_name: wg-easy
     networks:
-      wg:
-        ipv4_address: 10.42.42.42
-        ipv6_address: fdcc:ad94:bacf:61a3::2a
+      - proxy
     volumes:
       - etc_wireguard:/etc/wireguard
       - /lib/modules:/lib/modules:ro
@@ -32,13 +30,12 @@ services:
       - net.ipv6.conf.all.disable_ipv6=0
       - net.ipv6.conf.all.forwarding=1
       - net.ipv6.conf.default.forwarding=1
-
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vpn.entrypoints=websecure"
+      - "traefik.http.routers.vpn.rule=Host(`vpn.aproject.com`)"
+      - "traefik.http.routers.vpn.tls.certresolver=letsencrypt"
+      - "traefik.http.services.vpn.loadbalancer.server.port=51821"
 networks:
-  wg:
-    driver: bridge
-    enable_ipv6: true
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.42.42.0/24
-        - subnet: fdcc:ad94:bacf:61a3::/64
+  proxy:
+    external: true
